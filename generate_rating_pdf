@@ -1,0 +1,126 @@
+#!/bin/bash
+
+set -e
+
+# CONFIGURATION
+OUTPUT="Image_Rating_ContactSheet.pdf" # Final PDF output
+PER_PAGE=8 # Number of thumbnails per page
+FONT="Helvetica" # Font for annotations
+THUMB_SIZE="500x500" # Thumbnail size
+SPACING_Y=120 # Vertical spacing for annotations
+ORIGINAL_DIR=$(pwd) # Directory where the script is executed
+INTERMEDIATE_FILE="intermediate_records.txt" # Intermediate file for raw processed records
+SORTED_FILE="sorted_images.txt" # Final sorted metadata file
+
+# CLEANUP OLD FILES
+if [[ -f "$OUTPUT" ]]; then
+  rm "$OUTPUT"
+fi
+if [[ -f "$SORTED_FILE" ]]; then
+  rm "$SORTED_FILE"
+fi
+if [[ -f "$INTERMEDIATE_FILE" ]]; then
+  rm "$INTERMEDIATE_FILE"
+fi
+rm -f thumb_*.jpg page_*.jpg
+
+# FUNCTION TO GENERATE STAR RATINGS
+stars() {
+  local s=$1
+  if [[ "$s" -eq 0 ]]; then
+    echo "REJECTED"
+  else
+    printf '%*s' "$s" '' | tr ' ' '★'
+  fi
+}
+
+# EXTRACT METADATA AND WRITE TO INTERMEDIATE FILE
+echo "Extracting metadata..."
+exiftool -q -m -ext jpg -Rating -CreateDate -Caption-Abstract -FileName . |
+awk -v intermediate="$INTERMEDIATE_FILE" '
+  BEGIN { fn=""; rating="0"; comment="No Caption"; date="Unknown Date" }
+  {
+    if ($0 ~ /^File Name/) { fn=substr($0, index($0, ":") + 2) }
+    if ($0 ~ /^Rating/)    { rating=substr($0, index($0, ":") + 2) }
+    if ($0 ~ /^Create Date/) { date=substr($0, index($0, ":") + 2) }
+    if ($0 ~ /^Caption-Abstract/) { comment=substr($0, index($0, ":") + 2) }
+
+    # When all fields are populated, write to the intermediate file and reset variables
+    if (fn != "") {
+      printf("%s|%s|%s|%s\n", rating, date, fn, comment) >> intermediate
+      fn=""; rating="0"; comment="No Caption"; date="Unknown Date"
+    }
+  }
+  END {
+    # Write the last record if the file does not end with a blank line
+    if (fn != "") {
+      printf("%s|%s|%s|%s\n", rating, date, fn, comment) >> intermediate
+    }
+  }
+'
+
+# DEBUG: CHECK INTERMEDIATE FILE
+echo "Contents of intermediate_records.txt:"
+cat "$INTERMEDIATE_FILE"
+
+# SORT THE INTERMEDIATE FILE
+echo "Sorting metadata..."
+sort -t"|" -k1,1nr -k2 "$INTERMEDIATE_FILE" > "$SORTED_FILE"
+
+# DEBUG: CHECK SORTED FILE
+echo "Contents of sorted_images.txt:"
+cat "$SORTED_FILE"
+
+# GENERATE THUMBNAILS
+echo "Rendering thumbnails..."
+COUNT=0
+while IFS="|" read -r rating date filename comment; do
+  COUNT=$((COUNT+1))
+  base=$(basename "$filename")
+  stars_text=$(stars "$rating") # Call the stars function to generate the rating text
+
+  # DEBUG: Check the stars and annotation text
+  echo "Processing: $filename"
+  echo "Rating: $rating, Stars: $stars_text"
+  echo "Comment: $comment"
+
+  # Build annotation text
+  annotation=$(printf "%s\\n%s\\n%s" "$base" "$stars_text" "$comment")
+  echo "Annotation text: $annotation" # DEBUG: Check the full annotation text
+
+  # Generate thumbnail
+  magick "$ORIGINAL_DIR/$filename" -resize "$THUMB_SIZE" \
+    -gravity south -background white -splice 0x$SPACING_Y \
+    -font "$FONT" -pointsize 16 -annotate +0+10 "$annotation" \
+    "thumb_${COUNT}.jpg" || { echo "Failed to process $filename"; exit 1; }
+done < "$SORTED_FILE"
+
+# DEBUG: CHECK GENERATED THUMBNAILS
+echo "Generated thumbnails:"
+ls thumb_*.jpg
+
+# GROUP THUMBNAILS INTO PAGES
+echo "Composing pages..."
+IMG_FILES=(thumb_*.jpg)
+total=${#IMG_FILES[@]}
+pages=$(( (total + PER_PAGE - 1) / PER_PAGE ))
+
+for ((i=0; i<pages; i++)); do
+  PAGE_NUM=$((i+1))
+
+  # DEBUG: CHECK IMAGES BEING PASSED TO MONTAGE
+  echo "Images for page $PAGE_NUM: ${IMG_FILES[@]:i*PER_PAGE:PER_PAGE}"
+
+  montage "${IMG_FILES[@]:i*PER_PAGE:PER_PAGE}" \
+    -tile 2x4 -geometry +30+30 -background white \
+    "page_${PAGE_NUM}.jpg"
+done
+
+# COMBINE PAGES INTO A SINGLE PDF
+echo "Generating PDF..."
+magick page_*.jpg "$OUTPUT"
+
+echo "PDF created: $ORIGINAL_DIR/$OUTPUT"
+
+# CLEAN UP INTERMEDIATE FILES
+rm -f thumb_*.jpg page_*.jpg "$INTERMEDIATE_FILE"
