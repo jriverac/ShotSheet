@@ -1,11 +1,10 @@
 # ShotSheet
 
-<img src="media/ShotSheet.png" alt="ShotSheet Example" width="256" height="256" align="left" style="margin-right: 20px; margin-bottom: 10px;">
+<img src="media/ShotSheet.png" alt="ShotSheet" width="128"/>
 
 ## Summary
 
 This script extracts metadata information from photos in the current folder and uses it to generate a "ShotSheet" PDF to annotate and share.
-
 
 ## Install
 
@@ -21,9 +20,7 @@ This script extracts metadata information from photos in the current folder and 
    - Move the script to a directory in your PATH, e.g.:
      `mv shotsheet /usr/local/bin/`
    - Or add the ShotSheet folder to your PATH in your shell profile:
-     `export PATH="$PATH:/Users/jrivera/Code/Shell/ShotSheet"`
-
-<br clear="left"/>
+     `export PATH="$PATH:<Your Install>/ShotSheet"`
 
 ## Usage
 
