@@ -24,5 +24,5 @@ This script extracts metadata information from photos in the current folder and 
 
 1. Navigate to the folder containing your photos.
 2. Run the script:
-   `shotsheet`
-3. Follow the prompts to generate your ShotSheet PDF.
+   `./shotsheet`
+3. Open `ShotSheet.pdf` to view your generated contact sheet.

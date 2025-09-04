@@ -3,7 +3,7 @@
 set -e
 
 # CONFIGURATION
-OUTPUT="Image_Rating_ContactSheet.pdf" # Final PDF output
+OUTPUT="ShotSheet.pdf" # Final PDF output
 PER_PAGE=8 # Number of thumbnails per page
 FONT="Helvetica" # Font for annotations
 THUMB_SIZE="500x500" # Thumbnail size
