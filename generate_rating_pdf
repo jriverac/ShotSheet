@@ -30,7 +30,7 @@ stars() {
   if [[ "$s" -eq 0 ]]; then
     echo "REJECTED"
   else
-    printf '%*s' "$s" '' | tr ' ' '★'
+    printf '%*s' "$s" '' | tr ' ' '*'
   fi
 }
 
@@ -121,6 +121,40 @@ echo "Generating PDF..."
 magick page_*.jpg "$OUTPUT"
 
 echo "PDF created: $ORIGINAL_DIR/$OUTPUT"
+
+# SUMMARY OF RATINGS AND COMMENTS
+echo "Generating summary..."
+rating_counts_file="rating_counts.tmp"
+no_comment_count=0
+
+# Initialize temporary file for rating counts
+> "$rating_counts_file"
+
+while IFS="|" read -r rating date filename comment; do
+  # Increment rating count
+  echo "$rating" >> "$rating_counts_file"
+
+  # Check for missing comments
+  if [[ "$comment" == "No Caption" ]]; then
+    ((no_comment_count++))
+  fi
+done < "$SORTED_FILE"
+
+# Print rating summary
+echo "Summary of ratings:"
+sort "$rating_counts_file" | uniq -c | while read -r count rating; do
+  echo "Rating $rating: $count pictures"
+done
+
+# Output count of images with a rating of 3 or higher
+high_rating_count=$(awk -F"|" '$1 >= 4 {count++} END {print count}' "$SORTED_FILE")
+echo "Pictures with a rating of 4 or higher: ${high_rating_count:-0}"
+
+# Print no comment summary
+echo "Pictures without comments: $no_comment_count"
+
+# Clean up temporary file
+rm -f "$rating_counts_file"
 
 # CLEAN UP INTERMEDIATE FILES
 rm -f thumb_*.jpg page_*.jpg "$INTERMEDIATE_FILE"
