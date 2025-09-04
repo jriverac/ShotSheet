@@ -36,7 +36,7 @@ stars() {
 
 # EXTRACT METADATA AND WRITE TO INTERMEDIATE FILE
 echo "Extracting metadata..."
-exiftool -q -m -ext jpg -Rating -CreateDate -Caption-Abstract -FileName . |
+exiftool -q -m -ext jpg -ext jpeg -Rating -CreateDate -Caption-Abstract -FileName . |
 awk -v intermediate="$INTERMEDIATE_FILE" '
   BEGIN { fn=""; rating="0"; comment="No Caption"; date="Unknown Date" }
   {

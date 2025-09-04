@@ -28,3 +28,12 @@ This script extracts metadata information from photos in the current folder and 
 2. Run the script:
    `shotsheet`
 3. Open `ShotSheet.pdf` to view your generated contact sheet.
+
+## Notes
+
+- Your photos should be in JPEG format (either .jpg or .jpeg).
+- Your photos need to include the necessary metadata (Rating, Create Date, Caption-Abstract) for the script to work effectively.
+- When your metadata is incomplete you might see
+  - "REJECTED" when the rating is missing.
+  - "No Caption" when the caption-abstract is missing.
+  - "Unknown Date" when the create-date is missing.
