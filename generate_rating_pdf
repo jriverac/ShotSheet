@@ -65,7 +65,7 @@ cat "$INTERMEDIATE_FILE"
 
 # SORT THE INTERMEDIATE FILE
 echo "Sorting metadata..."
-sort -t"|" -k1,1nr -k2 "$INTERMEDIATE_FILE" > "$SORTED_FILE"
+sort -t"|" -k1,1nr -k2,2 "$INTERMEDIATE_FILE" | sort -t"|" -k1,1nr -k2,2 > "$SORTED_FILE"
 
 # DEBUG: CHECK SORTED FILE
 echo "Contents of sorted_images.txt:"
@@ -156,5 +156,3 @@ echo "Pictures without comments: $no_comment_count"
 # Clean up temporary file
 rm -f "$rating_counts_file"
 
-# CLEAN UP INTERMEDIATE FILES
-rm -f thumb_*.jpg page_*.jpg "$INTERMEDIATE_FILE"
