@@ -2,6 +2,42 @@
 
 set -e
 
+# Check for dependencies
+dependencies=("exiftool" "awk" "sort" "magick" "montage")
+missing_dependencies=()
+
+for dep in "${dependencies[@]}"; do
+  if ! command -v "$dep" &> /dev/null; then
+    missing_dependencies+=("$dep")
+  fi
+done
+
+if [[ ${#missing_dependencies[@]} -gt 0 ]]; then
+  echo "The following dependencies are missing: ${missing_dependencies[*]}"
+  read -p "Do you want to install them? (y/n): " install_choice
+  if [[ "$install_choice" == "y" || "$install_choice" == "Y" ]]; then
+    for dep in "${missing_dependencies[@]}"; do
+      if [[ "$dep" == "magick" || "$dep" == "montage" ]]; then
+        echo "Please install ImageMagick manually (https://imagemagick.org)."
+        exit 1
+      else
+        echo "Installing $dep..."
+        if command -v apt-get &> /dev/null; then
+          sudo apt-get install -y "$dep"
+        elif command -v brew &> /dev/null; then
+          brew install "$dep"
+        else
+          echo "Package manager not supported. Please install $dep manually."
+          exit 1
+        fi
+      fi
+    done
+  else
+    echo "Dependencies are required to run this script. Exiting."
+    exit 1
+  fi
+fi
+
 # CONFIGURATION
 OUTPUT="ShotSheet.pdf" # Final PDF output
 PER_PAGE=8 # Number of thumbnails per page
