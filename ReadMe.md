@@ -29,4 +29,4 @@ This script extracts metadata information from photos in the current folder and 
   - "REJECTED" when the rating is missing.
   - "No Caption" when the caption-abstract is missing.
   - "Unknown Date" when the create-date is missing.
-- The best software I found to enter the notes for the photos is digiKam, most others just wasted time and got nowhere. Feel free to send me recommendations for other (Mac) software to catalog and write EXIF.
+- The best software I found to enter the notes for the photos is [digiKam](https://www.digikam.org), most others just wasted time and got nowhere. Feel free to send me recommendations for other (Mac) software to catalog and write EXIF.
